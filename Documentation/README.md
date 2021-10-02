@@ -9,3 +9,4 @@
 - 4 FunctionalRequirements
     - [4.1 Loyalty](DocsFiles/4_FunctionalRequirements/4.1_Loyalty.md)
 - 5 NonFunctionalRequirements
+- Что-то новое
