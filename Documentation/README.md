@@ -9,4 +9,4 @@
 - 4 FunctionalRequirements
     - [4.1 Loyalty](DocsFiles/4_FunctionalRequirements/4.1_Loyalty.md)
 - 5 NonFunctionalRequirements
-- 6 файл AN_DAC_3 
+- 6 File [AN_DAC_3](DocsFiles/1_Purpose/AN_DAC_3.md) 
