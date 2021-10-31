@@ -8,4 +8,5 @@
 - 3 UserInterfaces
 - 4 FunctionalRequirements
     - [4.1 Loyalty](DocsFiles/4_FunctionalRequirements/4.1_Loyalty.md)
+    - [4.2 Frontend](DocsFiles/4_FunctionalRequirements/Frontend_ListCard.md)
 - 5 NonFunctionalRequirements
