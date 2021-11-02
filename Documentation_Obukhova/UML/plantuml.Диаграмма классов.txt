@@ -1,0 +1,131 @@
+@startuml
+Borrower "1" *-- "1..*" Contact
+Borrower "1" *-- "1..*" Document
+Borrower "1" -- "0..*" LoanApplication
+Vendor "1" -- "0..*" LoanApplication
+LoanApplication ..> CreditProduct 
+LoanApplication "1" *-- "1..*" DocumentScan
+LoanApplication "1" *-- "0..*" Product
+LoanApplication "1" *-- "1..*" ApplicationHistory
+LoanApplication <|-- Credit
+LoanApplication "1" -- "1" Scoring
+Credit "1" *-- "0..*" PaymentSchedule
+Scoring "1" *-- "1..*" Indicators
+Scoring "1" *-- "1..*" Checks
+Borrower "1" -- "0..*" Credit
+
+
+class Contact {
+  id: String
+  type: String
+  value: String
+}
+
+class Document{
+  id: String
+  type: String
+  series: String
+  number: String
+  code: String
+  issueDate: String
+  issuedBy: String
+}
+
+class Borrower{
+  id: String
+  firstName: String
+  lastName: String
+  patronymic: String
+  birthDate: String
+  gender: String
+  familyStatus: String
+  address: String
+}
+
+class Vendor{
+  id: String
+  name: String
+  INN: String
+  pointSale: String
+}
+
+class LoanApplication{
+  id: String
+  sum: float
+  currency: String
+  creditTerm: integer
+  paymentAmount: float
+  loanType: String
+  monthlyIncome: String
+  employmentType: String
+  work: String
+  workingPosition: String
+}
+
+class Credit{
+  id: String
+  contractNumber: String
+}
+
+class PaymentSchedule{
+  id: String
+  paymentDate: Date
+  sum: float
+  mainDebt: float
+  percent: float
+}
+
+class DocumentScan {
+  id: String
+  type: String
+  scan: String
+}
+
+class Product{
+  id: String
+  name: String
+  type: String
+  price: float
+  guaranteePeriodMonth: integer
+}
+
+class ApplicationHistory{
+  id: String
+  type: String
+  value: String
+}
+
+class Scoring{
+  id: String
+  rating: float
+  resultCheck: boolean
+}
+
+class Indicators{
+  id: String
+  indicator: String
+  value: String
+  rating: float
+}
+
+class Checks{
+  id: String
+  type: String
+  check : boolean
+}
+
+class CreditProduct{
+  id: String
+  class: String
+  name: String
+  currency: String
+  initialPayment: float
+  postponementMonths: integer
+  minLimit: float
+  maxLimit: float
+  minAgeBorrower: integer
+  maxAgeBorrower: integer
+  minIncome: float
+  interestRate: float
+}
+@enduml
