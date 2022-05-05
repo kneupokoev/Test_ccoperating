@@ -1,0 +1,39 @@
+@startuml
+participant MB
+participant CRM
+participant Server
+participant IB
+participant ESB
+participant Sender
+autonumber
+
+Server ->IB: Запрос ID просмотренных предложений
+activate IB
+activate Server
+
+IB -> Server: Передача ID просмотренных предложений
+Server -> CRM: Передача ID просмотренных предложений
+activate CRM
+Server -> CRM: Запрос на генерацию нового предложения для данного клиента
+CRM -> Server: Отправка нового предложения
+deactivate CRM
+Server -> IB: Передача статуса "Отправлено"
+deactivate IB
+Server -> ESB: Отправка текста нового предложения
+activate ESB
+deactivate Server
+ESB ->ESB: Преобразование текста для рассыльщика
+ESB -> Sender: Отправка в рассыльщик
+activate Sender
+deactivate ESB
+Sender -> MB: Отправка push-уведомления на устройство
+deactivate Sender
+activate MB
+MB -> Server: Передача статуса "Просмотрено"
+deactivate MB
+activate Server
+Server -> IB: Передача статуса "Просмотрено"
+deactivate Server
+activate IB
+deactivate IB
+@enduml
