@@ -1,0 +1,181 @@
+# 4.2 API_Получение истории операций
+
+## История изменений
+[cols="1,1,1,1", hrows=1]
+|====
+|Автор|Версия изменений|Описание|Задача
+
+|Шаталова К.О|1.0|Исходная версия документа|TASK-1|
+|====
+**Цель:** сервис предназначен для получения списка операций по карте.
+
+**URL:** [endpoint]/api/card/operations
+
+**Метод:** GET
+
+**Доступ:** авторизованная зона. Сервис вызывается с фронта.
+
+**Входные параметры:**
+[cols="1,1,1,1,1", hrows=1]
+|====
+|Параметр|Тип поля|Описание|Обязательность|Комментарий|
+
+|forceRequest|Boolean|Признак принудительного запроса (получение актуальной информации из АБС)|Да
+
+|cardnumber|String| Виртуальный или полный номер карты| Да* |Обязательно, если не заполнен параметр cardid3c
+
+| cardid3c    | Number   | ИД карты, используется как альтернатива cardnumber | Да*| Обязательно, если не заполнен параметр cardnumber
+
+| begindate   | String   | Дата начала периода, за который запрашивается информация (формат yyyy-mm-dd)    | Да | Для краткой формы по умолчанию стоит дата на 5 дней раньше
+
+| enddate     | String   | Дата окончания периода, за который запрашивается информация (формат yyyy-mm-dd) | Да  |Для краткой формы по умолчанию значение = 5
+
+| numberOfOps | Number   | Максимальное количество операций, которое нужно вернуть в ответ| Да|Для краткой формы по умолчанию значение = 5
+|====
+
+**Выходные параметры:**
+[cols="1,1,1,1", hrows=1]
+|====
+| Параметр | Тип поля     | Описание | Обязательность
+
+| data/operation | List[Object] | Список операций по карте | Нет
+
+| data/operation/transactionDate      | DateTime     | Дата операции | Да
+
+|data/operation/cardSign|String|Знак операции, принимает значения 'Debit' или 'Credit'|Да
+
+|data/operation/authorizationCode|	Number|Код авторизации. Код, присвоенный Участником, разрешившим совершение операции.|Да
+
+|data/operation/mcc	|Number	|Код идентифицирующий категорию (бизнес-код) точки сервиса	|Да
+
+|data/operation/description|String|	Назначение операции|Да
+
+|data/operation/place|String|	Параметры пункта обслуживания (название и город). |Да
+
+|data/operation/OPERATIONSTATUS|String|Статус операции|Да
+
+|data/operation/transactionAmount|	Number|Сумма операции в валюте карты|Да
+
+|data/operation/authAmount|Number|	Сумма операции в валюте транзакции|Да
+
+|data/operation/operType|String	|Тип операции, IBN - оплата услуг в ИБ, POS - POS, ATM - наличка, BAL - платный запрос баланса карты, P2P - P2P, KOM - комиссия, KAS - наличка, ACC - перевод по счету. |	Да
+
+|====
+## Основной сценарий (MC)
+
+1.	Сервис проверяет входные параметры запроса.
+2.	Сервис выполняет поиск операций для текущей карты в БД в таблице cards_operation.
+3.	Если в таблице cards_operation для текущей карты отсутствуют операции, то переход к сценарию AC-1 - Получение операций из АБС Cards.
+4.	Сервис сортирует операции в порядке уменьшения даты операции.
+5.	Сервис формирует ответ согласно маппингу:
+[cols="1,1", hrows=1]
+|====
+Параметр ответа|Правило формирования
+
+|data/operation	|-
+
+|data/operation/transactionDate	 |Значение cards_operation.transaction_date|
+
+|data/operation/transactionCurrency	|Значение cards_operation.transaction_currency|
+
+|data/operation/authСurrency|	Значение cards_operation.auth_currency
+
+|data/operation/authDate	|Значение cards_operation.auth_date
+
+|data/operation/cardSign	|Значение cards_operation.card_sign
+
+|data/operation/authorizationCode|	Значение cards_operation.authorization_code
+
+|data/operation/mcc	|Значение cards_operation.mcc
+
+|data/operation/description	|Значение cards_operation.description
+
+|data/operation/place	|Значение cards_operation.place
+
+|data/operation/OPERATIONSTATUS|	Значение cards_operation.operationstatus
+
+|data/operation/transactionAmount	|Значение cards_operation.transaction_amount
+
+|data/operation/authAmount	|Значение cards_operation.auth_amount
+
+|data/operation/operType	|Значение cards_operation.oper_type
+
+|====
+6.	Сервис возвращает ответ вызывающей системе.
+
+## Альтернативный сценарий (AC)
+### АС-1. Получение операций из АБС Cards.
+1. Сервис инициирует получение карт клиента из Cards, формируя запрос:
+[cols="1,1", hrows=1]
+|====
+|Атрибут	|Описание
+
+|cardnumber|	Виртуальный или полный номер карты|
+
+cardid3c|	ИД карты, используется как альтернатива cardnumber|
+
+begindate|	Дата начала периода за который запрашивается информация (формат: yyyy-mm-dd)|
+
+enddate|Дата окончания периода за который запрашивается информация (формат: yyyy-mm-dd)|
+
+numberOfOps|Максимальное количество операций, которое нужно вернуть в ответ|
+|====
+2.После получения ответа от бэк-системы, выполняется проверка, получена ли информация о картах:
+
+Если получена ошибка, пустой ответ или таймаут, то переход к сценарию ЕС-1
+
+3.По событию получения ответа, сервис сохраняет карты в БД в таблицу cards_operation, согласно маппингу:
+[cols="1,1", hrows=1]
+|====
+|Поле в таблице client_cards|Поле в ответе Cards|
+
+id	|Генерируемое автоматически значение|
+
+data/operation/transactionDate	|Значение cards_operation.transaction_date|
+
+data/operation/transactionCurrency|Значение cards_operation.transaction_currency|
+
+data/operation/authСurrency|	Значение cards_operation.auth_currency|
+
+data/operation/authDate|Значение cards_operation.auth_date|
+
+data/operation/cardSign|Значение cards_operation.card_sign|
+
+data/operation/authorizationCode|	Значение cards_operation.authorization_code|
+
+data/operation/mcc|Значение cards_operation.mcc|
+
+data/operation/description	|Значение cards_operation.description|
+
+data/operation/place|Значение cards_operation.place|
+
+data/operation/OPERATIONSTATUS	|Значение cards_operation.operationstatus|
+
+data/operation/transactionAmount|	Значение cards_operation.transaction_amount|
+
+data/operation/authAmount	|Значение cards_operation.auth_amount|
+
+data/operation/operType|Значение cards_operation.oper_type|
+|====
+4.Сценарий продолжается с шага 4 Основного сценария - получение актуального баланса.
+
+## Исключительные сценарии (EC)
+
+### ЕС-1. Получена ошибка, пустой ответ или таймаут
+1.Сервис формирует ответ, согласно маппингу.
+[cols="1,1", hrows=1]
+|====
+|Параметр ответа|Правило формирования
+
+|data/error/code|Код ошибки
+
+|data/error/text|«Что-то пошло не так, но мы уже знаем о проблеме…»
+|====
+2.API возвращает ответ.
+
+## Конфигурационные параметры
+[cols="1,1,1", hrows=1]
+|====
+Название конфига|Значение|Описание
+|||
+|====
